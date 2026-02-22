@@ -9,7 +9,7 @@ from src.testing.test_framework import AmmeterTestFramework
 from src.testing.result_repository import ResultRepository
 from src.testing.result_analyzer import ResultAnalyzer
 from src.testing.measurement_session import MeasurementSession
-
+from src.utils.config import load_config
 
 def run_greenlee_emulator():
     greenlee = GreenleeAmmeter(5001)
@@ -25,6 +25,7 @@ def run_circutor_emulator():
 
 if __name__ == "__main__":
     # Start each ammeter in a separate thread
+
     threading.Thread(target=run_greenlee_emulator, daemon=True).start()
     threading.Thread(target=run_entes_emulator, daemon=True).start()
     threading.Thread(target=run_circutor_emulator, daemon=True).start()
@@ -46,8 +47,16 @@ if __name__ == "__main__":
         request_current_from_ammeter(5003, b'MEASURE_CIRCUTOR -get_measurement -current')  # Request from CIRCUTOR Ammeter
     except Exception as e:
         print(f"Error requesting from Circutor Ammeter: {e}")
-
+    
     test = AmmeterTestFramework()
-    test.run_test("GreenleeAmmeter")
-    test.run_test("EntesAmmeter")
-    test.run_test("CircutorAmmeter")
+    threads = []
+
+    for ammeter_key in test.config["ammeters"]:
+        t = threading.Thread(target=test.run_test, args=(ammeter_key,))
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+
+    analyze = ResultAnalyzer()
+    analyze.visualize_run(str(test.uuid))

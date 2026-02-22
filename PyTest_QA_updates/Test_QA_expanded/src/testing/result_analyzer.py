@@ -1,10 +1,18 @@
+import json
+import os
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import statistics
 
+from config.logger_config import logger
+
 
 class ResultAnalyzer:
-    def __init__(self, data: list[float]):
-        if len(data) == 0:
+    def __init__(self, data: list[float] = None):
+        if not data:
+            logger.warning("Data list is empty. Analysis will be skipped.")
+        elif len(data) == 0:
             raise ValueError("Data list cannot be empty.")
         self.data = data
 
@@ -26,25 +34,54 @@ class ResultAnalyzer:
             "std": std,
             "min": minimum,
             "max": maximum}
-    
-# Visualization of measurement data
-# Performance consistency evaluation
 
-    def visualize_data(self):
+
+    def visualize_run(self, run_uuid: str, results_dir="results"):
         """
-        Creates a histogram of the measurement data using matplotlib.        
+        Visualizes the results of a specific test run by reading the corresponding JSON file and plotting the data.
+        :param run_uuid: The UUID of the test run to visualize
+        :type run_uuid: str
+        :param results_dir: The directory where the result JSON files are stored
         """
-        plt.hist(self.data, bins=20, alpha=0.7)
-        plt.title("Measurement Data Distribution")
-        plt.xlabel("Current (A)")
-        plt.ylabel("Frequency")
-        plt.grid()
-        plt.show()
-    
-    def evaluate_performance_consistency(self):
-        # Placeholder for consistency evaluation logic
-        # This could involve checking for outliers, trends, or comparing against expected values
-        pass
-    
 
+        target_file = None
+        for file_name in os.listdir(results_dir):
+            if file_name.endswith(".json") and run_uuid in file_name:
+                target_file = os.path.join(results_dir, file_name)
+                break
+ 
+        if not target_file:
+            logger.error(f"No file found for UUID: {run_uuid}")
+            raise FileNotFoundError(f"No file found for UUID: {run_uuid}")
+ 
+        with open(target_file, "r", encoding="utf-8") as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                logger.error(f"File {target_file} contains invalid JSON")
+                raise ValueError(f"File {target_file} contains invalid JSON")
+            
+        plt.figure(figsize=(10, 6))
 
+        # TODO: Add more colors if you have more than 4 runs, or use a color map.
+        colors = ['blue', 'green', 'orange', 'red']
+        labels = []
+
+        for i, run in enumerate(data):
+            ammeter_type = run['ammeter_type']
+            results = run['results']
+
+            x_labels = ['Mean','Median',  'Std', 'Min', 'Max']
+            values = [results['mean'], results['median'], results['std'], results['min'], results['max']]
+
+            plt.plot(x_labels, values, marker='o', color=colors[i], label=ammeter_type, linewidth=2, markersize=8)
+
+        plt.title('Measurement Data Histogram', fontsize=16)
+        plt.xlabel('Measurement Type', fontsize=12)
+        plt.ylabel('Value', fontsize=12)
+        plt.legend(title='Ammeter Types', fontsize=10)
+        plt.grid(True)
+
+        plt.tight_layout()
+        plt.savefig(f'{results_dir}/Measurement_Data_Histogram.png')
+        logger.info("Histogram saved as Measurement_Data_Histogram.png")

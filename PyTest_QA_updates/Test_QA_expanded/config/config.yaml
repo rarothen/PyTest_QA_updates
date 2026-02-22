@@ -1,20 +1,26 @@
 testing:
   sampling:
-    measurements_count: 10 #NULL
-    total_duration_seconds: 2 #NULL
+    measurements_count: 20 #NULL
+    total_duration_seconds: 3 #NULL
     sampling_frequency_hz: NULL
 
 ammeters:
  greenlee:
-   port: 5000
+   port: 5001
+   class: "GreenleeAmmeter"
    command: "MEASURE_GREENLEE -get_measurement"
  entes:
-   port: 5001
+   port: 5002
+   class: "EntesAmmeter"
    command: "MEASURE_ENTES -get_data"
  circutor:
-   port: 5002
+   port: 5003
+   class: "CircutorAmmeter"
    command: "MEASURE_CIRCUTOR -get_measurement -current"
-
+ circutor_extra:
+   port: 5004
+   class: "CircutorAmmeter"
+   command: "MEASURE_CIRCUTOR -get_measurement -current"
 analysis:
   statistical_metrics:
     mean: true
@@ -29,3 +35,4 @@ analysis:
 result_management: 
   save_results: true
   repository_path: "results/"
+  
