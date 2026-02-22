@@ -1,0 +1,16 @@
+{
+    "uuid": "6f7714ff-faa2-427e-b105-8af40c1a5699",
+    "timestamp": "2026-02-18T10:45:09.903079",
+    "ammeter_type": "EntesAmmeter",
+    "sampling_config": {
+        "measurements_count": 10,
+        "total_duration_seconds": 2
+    },
+    "results": {
+        "mean": 54.408982249580255,
+        "median": 54.65413472928131,
+        "std": 29.206554933063504,
+        "min": 11.549956428821755,
+        "max": 117.72636829940575
+    }
+}
