@@ -1,5 +1,8 @@
 import time
 
+from config.logger_config import logger
+
+
 class MeasurementSession:
     def __init__(self, ammeter, measurements_count: int, total_duration_seconds: float):
         if measurements_count <= 0:
@@ -25,13 +28,13 @@ class MeasurementSession:
 
         for _ in range(self.measurements_count):
             try: 
-                value = self.ammeter.measure_current()
+                value, current = self.ammeter.measure_current()
                 measurement.append(value)
             except Exception as e:
-                print(f"Error during measurement: {e}")
+                logger.warning(f"Error during measurement: {e}")
                 continue
             next_sample_time += self.sampling_interval
             sleep_time = next_sample_time - time.perf_counter()
             if sleep_time > 0:
                 time.sleep(sleep_time)
-        return measurement
+        return measurement, current
